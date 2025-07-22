@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Face Recognition Attendance System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-5">
+            <h1 class="display-4 text-white fw-bold">
+                <i class="fas fa-user-graduate me-3"></i>
+                School Attendance System
+            </h1>
+            <p class="lead text-white-75">Modern face recognition technology for seamless attendance tracking</p>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('live_feed') }}" class="btn btn-primary w-100 py-3">
+                            <i class="fas fa-video mb-2 d-block"></i>
+                            Start Live Feed
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('add_student') }}" class="btn btn-success w-100 py-3">
+                            <i class="fas fa-user-plus mb-2 d-block"></i>
+                            Add New Student
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('attendance') }}" class="btn btn-info w-100 py-3">
+                            <i class="fas fa-clipboard-list mb-2 d-block"></i>
+                            View Attendance
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('export_attendance') }}" class="btn btn-warning w-100 py-3">
+                            <i class="fas fa-download mb-2 d-block"></i>
+                            Export Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Information -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Getting Started
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-play-circle text-primary me-2"></i>Quick Setup</h5>
+                        <ol>
+                            <li>Add students with their photos</li>
+                            <li>Start the live camera feed</li>
+                            <li>Students look at the camera</li>
+                            <li>Attendance is marked automatically</li>
+                            <li>View and export attendance reports</li>
+                        </ol>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-star text-warning me-2"></i>Features</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Real-time face recognition</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Automatic attendance marking</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Student database management</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Report generation & export</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Time in/out tracking</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Tip:</strong> Ensure good lighting conditions for better face recognition accuracy. 
+                    The system works best with clear, front-facing photos during student registration.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2"></i>System Status
+                </h4>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-robot fa-3x text-primary mb-3"></i>
+                    <h5>AI Recognition Ready</h5>
+                    <p class="text-muted">Face recognition system is active and ready to detect students.</p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="fw-bold">Current Time</h6>
+                    <h4 class="text-primary" id="current-time">--:--:--</h4>
+                </div>
+                
+                <a href="{{ url_for('live_feed') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-play me-2"></i>Start Recognition
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Real-time clock
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString();
+        document.getElementById('current-time').textContent = timeString;
+    }
+    
+    // Update time every second
+    setInterval(updateTime, 1000);
+    updateTime(); // Initial call
+</script>
+{% endblock %}
