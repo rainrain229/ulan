@@ -1,0 +1,11 @@
+body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 0; background: #0f172a; color: #e2e8f0; }
+.container { max-width: 900px; margin: 0 auto; padding: 24px; }
+.controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.controls input { padding: 8px 10px; border-radius: 6px; border: 1px solid #334155; background: #111827; color: #e2e8f0; }
+.controls button, .controls a { padding: 8px 12px; border-radius: 6px; border: none; background: #2563eb; color: white; text-decoration: none; cursor: pointer; }
+.controls button[disabled] { opacity: 0.5; cursor: not-allowed; }
+.video-wrapper { position: relative; width: 100%; max-width: 720px; aspect-ratio: 4/3; background: #111827; border-radius: 8px; overflow: hidden; }
+video { width: 100%; height: 100%; object-fit: cover; }
+#status { margin-top: 16px; min-height: 24px; }
+.thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 12px; }
+.thumbs img { width: 100%; border-radius: 6px; border: 1px solid #334155; }
