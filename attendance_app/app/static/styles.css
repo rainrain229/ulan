@@ -1,0 +1,6 @@
+body { font-family: system-ui, Arial, sans-serif; margin: 20px; }
+section { margin: 16px 0; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
+input, select, button { margin: 4px; padding: 8px; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ddd; padding: 8px; }
+th { background: #f2f2f2; }
