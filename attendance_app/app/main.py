@@ -14,8 +14,8 @@ app = FastAPI(title="School Face Attendance")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(BASE_DIR)
-STATIC_DIR = os.path.join(PARENT_DIR, "static")
-TEMPLATES_DIR = os.path.join(PARENT_DIR, "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 DATA_DIR = os.path.join(PARENT_DIR, "data")
 
 os.makedirs(DATA_DIR, exist_ok=True)
