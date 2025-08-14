@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>School Attendance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+  <h2>Face Attendance</h2>
+
+  <section>
+    <h3>Register</h3>
+    <form id="registerForm">
+      <input type="text" name="name" placeholder="Full name" required />
+      <select name="role">
+        <option value="student">Student</option>
+        <option value="teacher">Teacher</option>
+      </select>
+      <button type="submit">Capture & Register</button>
+    </form>
+  </section>
+
+  <section>
+    <h3>Camera</h3>
+    <video id="video" autoplay playsinline width="480" height="360"></video>
+    <canvas id="canvas" width="480" height="360" style="display:none"></canvas>
+  </section>
+
+  <section>
+    <h3>Recognize</h3>
+    <button id="recognizeBtn">Recognize</button>
+    <div id="recognizeResult"></div>
+  </section>
+
+  <section>
+    <h3>Teacher IN/OUT</h3>
+    <div>
+      <input type="number" id="teacherId" placeholder="Teacher ID"/>
+      <button id="inBtn">IN</button>
+      <button id="outBtn">OUT</button>
+    </div>
+  </section>
+
+  <p><a href="/admin">Admin dashboard</a></p>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const registerForm = document.getElementById('registerForm');
+    const recognizeBtn = document.getElementById('recognizeBtn');
+    const inBtn = document.getElementById('inBtn');
+    const outBtn = document.getElementById('outBtn');
+    const teacherIdInput = document.getElementById('teacherId');
+    const recognizeResult = document.getElementById('recognizeResult');
+
+    async function initCam(){
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        video.srcObject = stream;
+      }catch(e){
+        alert('Cam error: ' + e.message);
+      }
+    }
+
+    function snapshotBlob(){
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    }
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(registerForm);
+      const blob = await snapshotBlob();
+      formData.append('image', blob, 'capture.png');
+      const res = await fetch('/api/register', { method: 'POST', body: formData });
+      const data = await res.json();
+      if(data.ok){
+        alert('Registered with ID: ' + data.person_id);
+      }else{
+        alert('Failed: ' + JSON.stringify(data));
+      }
+    });
+
+    recognizeBtn.addEventListener('click', async () => {
+      const fd = new FormData();
+      const blob = await snapshotBlob();
+      fd.append('image', blob, 'frame.png');
+      const res = await fetch('/api/recognize', { method: 'POST', body: fd });
+      const data = await res.json();
+      recognizeResult.textContent = JSON.stringify(data);
+      if(data.recognized && data.role === 'teacher'){
+        teacherIdInput.value = data.person_id;
+      }
+    });
+
+    inBtn.addEventListener('click', async () => {
+      const fd = new FormData();
+      fd.append('teacher_id', teacherIdInput.value);
+      const res = await fetch('/api/teacher/in', { method: 'POST', body: fd });
+      alert('IN logged');
+    });
+
+    outBtn.addEventListener('click', async () => {
+      const fd = new FormData();
+      fd.append('teacher_id', teacherIdInput.value);
+      const res = await fetch('/api/teacher/out', { method: 'POST', body: fd });
+      alert('OUT logged');
+    });
+
+    initCam();
+  </script>
+</body>
+</html>

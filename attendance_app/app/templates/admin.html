@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Admin - Attendance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+  <h2>Admin Dashboard</h2>
+  <p><a href="/">Back</a></p>
+  <section>
+    <h3>Recent Attendance</h3>
+    <table id="attTable">
+      <thead>
+        <tr><th>ID</th><th>Person</th><th>Role</th><th>Check</th><th>Timestamp</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+  <script>
+    async function loadAttendance(){
+      const res = await fetch('/api/attendance');
+      const data = await res.json();
+      const tbody = document.querySelector('#attTable tbody');
+      tbody.innerHTML = '';
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.id}</td><td>${row.name} (${row.person_id})</td><td>${row.role}</td><td>${row.is_check_in ? 'IN' : 'OUT'}</td><td>${row.timestamp}</td>`;
+        tbody.appendChild(tr);
+      })
+    }
+    loadAttendance();
+    setInterval(loadAttendance, 5000);
+  </script>
+</body>
+</html>
