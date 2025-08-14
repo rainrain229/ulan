@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.git/
+.gitignore
+README.md
+**/*.db
+app/data/
+**/faces/
+/tmp/
