@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Attendance - Smart Attendance System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h2 mb-0">
+                <i class="fas fa-clock me-2"></i>
+                Teacher Attendance
+            </h1>
+            <p class="text-muted">Track and monitor teacher attendance records</p>
+        </div>
+        <div>
+            <a href="{{ url_for('export_teacher_attendance') }}?date={{ selected_date }}" class="btn btn-success me-2">
+                <i class="fas fa-download me-2"></i>
+                Export CSV
+            </a>
+            <a href="{{ url_for('live_feed') }}" class="btn btn-primary">
+                <i class="fas fa-camera me-2"></i>
+                Live Feed
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="date" class="form-label">
+                            <i class="fas fa-calendar me-1"></i>
+                            Select Date
+                        </label>
+                        <input type="date" class="form-control" id="date" name="date" 
+                               value="{{ selected_date }}" onchange="this.form.submit()">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="teacher" class="form-label">
+                            <i class="fas fa-user me-1"></i>
+                            Filter by Teacher
+                        </label>
+                        <select class="form-select" id="teacher" name="teacher" onchange="this.form.submit()">
+                            <option value="">All Teachers</option>
+                            {% for attendance, teacher in attendance_records %}
+                                <option value="{{ teacher.teacher_id }}" 
+                                        {% if request.args.get('teacher') == teacher.teacher_id %}selected{% endif %}>
+                                    {{ teacher.name }} ({{ teacher.teacher_id }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-2"></i>
+                            Apply Filters
+                        </button>
+                        <a href="{{ url_for('teacher_attendance') }}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>
+                            Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Attendance Summary for {{ selected_date }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3">
+                            <h3 class="text-primary mb-1" id="totalTeachers">0</h3>
+                            <p class="text-muted mb-0">Total Teachers</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3">
+                            <h3 class="text-success mb-1" id="presentTeachers">0</h3>
+                            <p class="text-muted mb-0">Present</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3">
+                            <h3 class="text-warning mb-1" id="partialTeachers">0</h3>
+                            <p class="text-muted mb-0">Partial (Time In Only)</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3">
+                            <h3 class="text-danger mb-1" id="absentTeachers">0</h3>
+                            <p class="text-muted mb-0">Absent</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Records -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Attendance Records
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if attendance_records %}
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="attendanceTable">
+                            <thead>
+                                <tr>
+                                    <th>Teacher</th>
+                                    <th>Department</th>
+                                    <th>Time In</th>
+                                    <th>Time Out</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attendance, teacher in attendance_records %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if teacher.image_path %}
+                                                <img src="{{ teacher.image_path }}" alt="{{ teacher.name }}" 
+                                                     class="rounded-circle me-3" width="40" height="40" 
+                                                     style="object-fit: cover;">
+                                            {% else %}
+                                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" 
+                                                     style="width: 40px; height: 40px;">
+                                                    <i class="fas fa-user text-white"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ teacher.name }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ teacher.teacher_id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if teacher.department %}
+                                            <span class="badge bg-info">{{ teacher.department }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attendance.time_in %}
+                                            <div class="text-success">
+                                                <i class="fas fa-sign-in-alt me-1"></i>
+                                                {{ attendance.time_in.strftime('%H:%M:%S') }}
+                                            </div>
+                                            <small class="text-muted">{{ attendance.time_in.strftime('%Y-%m-%d') }}</small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attendance.time_out %}
+                                            <div class="text-danger">
+                                                <i class="fas fa-sign-out-alt me-1"></i>
+                                                {{ attendance.time_out.strftime('%H:%M:%S') }}
+                                            </div>
+                                            <small class="text-muted">{{ attendance.time_out.strftime('%Y-%m-%d') }}</small>
+                                        {% else %}
+                                            <span class="text-warning">Not marked</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attendance.time_in and attendance.time_out %}
+                                            {% set duration = attendance.time_out - attendance.time_in %}
+                                            {% set hours = duration.total_seconds() // 3600 %}
+                                            {% set minutes = (duration.total_seconds() % 3600) // 60 %}
+                                            <span class="badge bg-primary">
+                                                {{ hours }}h {{ minutes }}m
+                                            </span>
+                                        {% elif attendance.time_in %}
+                                            <span class="text-muted">In progress</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attendance.status == 'Present' %}
+                                            <span class="badge bg-warning">Present</span>
+                                        {% elif attendance.status == 'Complete' %}
+                                            <span class="badge bg-success">Complete</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ attendance.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-info" 
+                                                    onclick="viewTeacherDetails('{{ teacher.teacher_id }}')"
+                                                    title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <a href="{{ url_for('teachers') }}" class="btn btn-sm btn-outline-primary"
+                                               title="Manage Teacher">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-inbox fa-4x mb-3"></i>
+                        <h5>No Attendance Records Found</h5>
+                        <p>No teacher attendance records found for {{ selected_date }}</p>
+                        <a href="{{ url_for('live_feed') }}" class="btn btn-primary">
+                            <i class="fas fa-camera me-2"></i>
+                            Start Attendance
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Teacher Details Modal -->
+<div class="modal fade" id="teacherDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user me-2"></i>
+                    Teacher Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="teacherDetailsContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Calculate attendance summary
+function calculateSummary() {
+    const rows = document.querySelectorAll('#attendanceTable tbody tr');
+    let total = 0, present = 0, partial = 0, absent = 0;
+    
+    rows.forEach(row => {
+        total++;
+        const timeIn = row.querySelector('td:nth-child(3)').textContent.trim();
+        const timeOut = row.querySelector('td:nth-child(4)').textContent.trim();
+        
+        if (timeIn !== '-' && timeOut !== '-') {
+            present++;
+        } else if (timeIn !== '-' && timeOut === '-') {
+            partial++;
+        } else {
+            absent++;
+        }
+    });
+    
+    document.getElementById('totalTeachers').textContent = total;
+    document.getElementById('presentTeachers').textContent = present;
+    document.getElementById('partialTeachers').textContent = partial;
+    document.getElementById('absentTeachers').textContent = absent;
+}
+
+// View teacher details
+function viewTeacherDetails(teacherId) {
+    // This would typically fetch teacher details from an API
+    // For now, we'll show a simple message
+    const modal = new bootstrap.Modal(document.getElementById('teacherDetailsModal'));
+    document.getElementById('teacherDetailsContent').innerHTML = `
+        <div class="text-center py-4">
+            <i class="fas fa-user fa-3x text-primary mb-3"></i>
+            <h5>Teacher ID: ${teacherId}</h5>
+            <p class="text-muted">Detailed information would be displayed here</p>
+            <p>This could include:</p>
+            <ul class="text-start">
+                <li>Personal information</li>
+                <li>Attendance history</li>
+                <li>Performance metrics</li>
+                <li>Contact details</li>
+            </ul>
+        </div>
+    `;
+    modal.show();
+}
+
+// Initialize summary on page load
+document.addEventListener('DOMContentLoaded', function() {
+    calculateSummary();
+    
+    // Add search functionality
+    const searchInput = $('<input>')
+        .attr('type', 'text')
+        .attr('placeholder', 'Search teachers...')
+        .addClass('form-control mb-3')
+        .on('keyup', function() {
+            const searchTerm = $(this).val().toLowerCase();
+            $('#attendanceTable tbody tr').each(function() {
+                const text = $(this).text().toLowerCase();
+                $(this).toggle(text.indexOf(searchTerm) > -1);
+            });
+            calculateSummary(); // Recalculate summary after filtering
+        });
+    
+    $('.card-body').first().prepend(searchInput);
+});
+
+// Auto-refresh data every 5 minutes
+setInterval(function() {
+    // Reload the page to get fresh data
+    window.location.reload();
+}, 300000);
+</script>
+{% endblock %}
