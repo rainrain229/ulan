@@ -1,125 +1,321 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Face Recognition Attendance System{% endblock %}
+{% block title %}Dashboard - Smart Attendance System{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row mb-4">
     <div class="col-12">
-        <div class="text-center mb-5">
-            <h1 class="display-4 text-white fw-bold">
-                <i class="fas fa-user-graduate me-3"></i>
-                School Attendance System
-            </h1>
-            <p class="lead text-white-75">Modern face recognition technology for seamless attendance tracking</p>
-        </div>
+        <h1 class="h2 mb-0">
+            <i class="fas fa-tachometer-alt me-2"></i>
+            Dashboard
+        </h1>
+        <p class="text-muted">Real-time attendance overview and statistics</p>
     </div>
 </div>
 
-<!-- Quick Actions -->
-<div class="row mb-5">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title mb-0">
-                    <i class="fas fa-bolt me-2"></i>Quick Actions
-                </h4>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3 mb-3">
-                        <a href="{{ url_for('live_feed') }}" class="btn btn-primary w-100 py-3">
-                            <i class="fas fa-video mb-2 d-block"></i>
-                            Start Live Feed
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="{{ url_for('add_student') }}" class="btn btn-success w-100 py-3">
-                            <i class="fas fa-user-plus mb-2 d-block"></i>
-                            Add New Student
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="{{ url_for('attendance') }}" class="btn btn-info w-100 py-3">
-                            <i class="fas fa-clipboard-list mb-2 d-block"></i>
-                            View Attendance
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="{{ url_for('export_attendance') }}" class="btn btn-warning w-100 py-3">
-                            <i class="fas fa-download mb-2 d-block"></i>
-                            Export Reports
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- System Information -->
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title mb-0">
-                    <i class="fas fa-info-circle me-2"></i>Getting Started
-                </h4>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h5><i class="fas fa-play-circle text-primary me-2"></i>Quick Setup</h5>
-                        <ol>
-                            <li>Add students with their photos</li>
-                            <li>Start the live camera feed</li>
-                            <li>Students look at the camera</li>
-                            <li>Attendance is marked automatically</li>
-                            <li>View and export attendance reports</li>
-                        </ol>
-                    </div>
-                    <div class="col-md-6">
-                        <h5><i class="fas fa-star text-warning me-2"></i>Features</h5>
-                        <ul class="list-unstyled">
-                            <li><i class="fas fa-check text-success me-2"></i>Real-time face recognition</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Automatic attendance marking</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Student database management</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Report generation & export</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Time in/out tracking</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="alert alert-info mt-3">
-                    <i class="fas fa-lightbulb me-2"></i>
-                    <strong>Tip:</strong> Ensure good lighting conditions for better face recognition accuracy. 
-                    The system works best with clear, front-facing photos during student registration.
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card students h-100">
+            <div class="card-body text-center">
+                <div class="stats-number text-success">{{ total_students }}</div>
+                <div class="stats-label">Total Students</div>
+                <div class="mt-2">
+                    <i class="fas fa-user-graduate fa-2x text-success"></i>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="col-md-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card attendance h-100">
+            <div class="card-body text-center">
+                <div class="stats-number text-warning">{{ present_students }}</div>
+                <div class="stats-label">Present Today</div>
+                <div class="mt-2">
+                    <i class="fas fa-check-circle fa-2x text-warning"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card teachers h-100">
+            <div class="card-body text-center">
+                <div class="stats-number text-info">{{ total_teachers }}</div>
+                <div class="stats-label">Total Teachers</div>
+                <div class="mt-2">
+                    <i class="fas fa-chalkboard-teacher fa-2x text-info"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card h-100">
+            <div class="card-body text-center">
+                <div class="stats-number text-primary">{{ present_teachers }}</div>
+                <div class="stats-label">Teachers Present</div>
+                <div class="mt-2">
+                    <i class="fas fa-clock fa-2x text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Overview Chart -->
+<div class="row mb-4">
+    <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h4 class="card-title mb-0">
-                    <i class="fas fa-chart-line me-2"></i>System Status
-                </h4>
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Today's Attendance Overview
+                </h5>
             </div>
-            <div class="card-body text-center">
-                <div class="mb-4">
-                    <i class="fas fa-robot fa-3x text-primary mb-3"></i>
-                    <h5>AI Recognition Ready</h5>
-                    <p class="text-muted">Face recognition system is active and ready to detect students.</p>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <canvas id="studentChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <canvas id="teacherChart" width="400" height="200"></canvas>
+                    </div>
                 </div>
-                
-                <div class="mb-3">
-                    <h6 class="fw-bold">Current Time</h6>
-                    <h4 class="text-primary" id="current-time">--:--:--</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('live_feed') }}" class="btn btn-primary w-100">
+                            <i class="fas fa-camera me-2"></i>
+                            Start Attendance
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('add_student') }}" class="btn btn-success w-100">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Add Student
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('add_teacher') }}" class="btn btn-info w-100">
+                            <i class="fas fa-chalkboard-teacher me-2"></i>
+                            Add Teacher
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('analytics') }}" class="btn btn-warning w-100">
+                            <i class="fas fa-chart-line me-2"></i>
+                            View Analytics
+                        </a>
+                    </div>
                 </div>
-                
-                <a href="{{ url_for('live_feed') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-play me-2"></i>Start Recognition
-                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <!-- Recent Student Attendance -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-graduate me-2"></i>
+                    Recent Student Attendance
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_attendance %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Class</th>
+                                    <th>Time In</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attendance, student in recent_attendance %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ student.name }}</strong>
+                                        <br><small class="text-muted">{{ student.student_id }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ student.class_name }}</span>
+                                    </td>
+                                    <td>
+                                        {% if attendance.time_in %}
+                                            <i class="fas fa-clock text-success me-1"></i>
+                                            {{ attendance.time_in.strftime('%H:%M') }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attendance.status == 'Present' %}
+                                            <span class="badge bg-success">Present</span>
+                                        {% elif attendance.status == 'Complete' %}
+                                            <span class="badge bg-info">Complete</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">{{ attendance.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>No attendance records for today</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Teacher Attendance -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>
+                    Recent Teacher Attendance
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_teacher_attendance %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Teacher</th>
+                                    <th>Department</th>
+                                    <th>Time In</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attendance, teacher in recent_teacher_attendance %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ teacher.name }}</strong>
+                                        <br><small class="text-muted">{{ teacher.teacher_id }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ teacher.department or 'N/A' }}</span>
+                                    </td>
+                                    <td>
+                                        {% if attendance.time_in %}
+                                            <i class="fas fa-clock text-success me-1"></i>
+                                            {{ attendance.time_in.strftime('%H:%M') }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attendance.status == 'Present' %}
+                                            <span class="badge bg-success">Present</span>
+                                        {% elif attendance.status == 'Complete' %}
+                                            <span class="badge bg-info">Complete</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">{{ attendance.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>No teacher attendance records for today</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Status -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-server me-2"></i>
+                    System Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-database fa-2x text-success"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0">Database</h6>
+                                <small class="text-success">Connected</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-camera fa-2x text-success"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0">Camera</h6>
+                                <small class="text-success">Ready</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-brain fa-2x text-success"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0">AI Engine</h6>
+                                <small class="text-success">Active</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-shield-alt fa-2x text-success"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0">Security</h6>
+                                <small class="text-success">Protected</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -128,15 +324,79 @@
 
 {% block extra_js %}
 <script>
-    // Real-time clock
-    function updateTime() {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString();
-        document.getElementById('current-time').textContent = timeString;
+// Student Attendance Chart
+const studentCtx = document.getElementById('studentChart').getContext('2d');
+const studentChart = new Chart(studentCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Present', 'Absent'],
+        datasets: [{
+            data: [{{ present_students }}, {{ absent_students }}],
+            backgroundColor: ['#28a745', '#dc3545'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            },
+            title: {
+                display: true,
+                text: 'Student Attendance'
+            }
+        }
     }
-    
-    // Update time every second
-    setInterval(updateTime, 1000);
-    updateTime(); // Initial call
+});
+
+// Teacher Attendance Chart
+const teacherCtx = document.getElementById('teacherChart').getContext('2d');
+const teacherChart = new Chart(teacherCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Present', 'Absent'],
+        datasets: [{
+            data: [{{ present_teachers }}, {{ total_teachers - present_teachers }}],
+            backgroundColor: ['#17a2b8', '#6c757d'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            },
+            title: {
+                display: true,
+                text: 'Teacher Attendance'
+            }
+        }
+    }
+});
+
+// Auto-refresh dashboard data every 30 seconds
+setInterval(function() {
+    fetch('/api/attendance_stats')
+        .then(response => response.json())
+        .then(data => {
+            // Update statistics
+            document.querySelector('.stats-card.students .stats-number').textContent = data.students.total;
+            document.querySelector('.stats-card.attendance .stats-number').textContent = data.students.present;
+            document.querySelector('.stats-card.teachers .stats-number').textContent = data.teachers.total;
+            document.querySelector('.stats-card:last-child .stats-number').textContent = data.teachers.present;
+            
+            // Update charts
+            studentChart.data.datasets[0].data = [data.students.present, data.students.absent];
+            studentChart.update();
+            
+            teacherChart.data.datasets[0].data = [data.teachers.present, data.teachers.absent];
+            teacherChart.update();
+        })
+        .catch(error => console.error('Error fetching stats:', error));
+}, 30000);
 </script>
 {% endblock %}
