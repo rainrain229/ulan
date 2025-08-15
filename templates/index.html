@@ -29,7 +29,13 @@
                     <div class="col-md-3 mb-3">
                         <a href="{{ url_for('live_feed') }}" class="btn btn-primary w-100 py-3">
                             <i class="fas fa-video mb-2 d-block"></i>
-                            Start Live Feed
+                            Start Live Feed (Students)
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('live_feed') }}?mode=teacher" class="btn btn-primary w-100 py-3">
+                            <i class="fas fa-chalkboard-teacher mb-2 d-block"></i>
+                            Start Live Feed (Teachers)
                         </a>
                     </div>
                     <div class="col-md-3 mb-3">
@@ -42,6 +48,20 @@
                         <a href="{{ url_for('attendance') }}" class="btn btn-info w-100 py-3">
                             <i class="fas fa-clipboard-list mb-2 d-block"></i>
                             View Attendance
+                        </a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('teachers') }}" class="btn btn-warning w-100 py-3">
+                            <i class="fas fa-users mb-2 d-block"></i>
+                            Teachers
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('teacher_attendance') }}" class="btn btn-warning w-100 py-3">
+                            <i class="fas fa-clipboard-check mb-2 d-block"></i>
+                            Teacher Attendance
                         </a>
                     </div>
                     <div class="col-md-3 mb-3">
@@ -70,10 +90,10 @@
                     <div class="col-md-6">
                         <h5><i class="fas fa-play-circle text-primary me-2"></i>Quick Setup</h5>
                         <ol>
-                            <li>Add students with their photos</li>
+                            <li>Add students and teachers with their photos</li>
                             <li>Start the live camera feed</li>
                             <li>Students look at the camera</li>
-                            <li>Attendance is marked automatically</li>
+                            <li>Teachers: look at the camera, then tap IN/OUT</li>
                             <li>View and export attendance reports</li>
                         </ol>
                     </div>
@@ -81,8 +101,8 @@
                         <h5><i class="fas fa-star text-warning me-2"></i>Features</h5>
                         <ul class="list-unstyled">
                             <li><i class="fas fa-check text-success me-2"></i>Real-time face recognition</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Automatic attendance marking</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Student database management</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Automatic student attendance</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Teacher IN/OUT with liveness</li>
                             <li><i class="fas fa-check text-success me-2"></i>Report generation & export</li>
                             <li><i class="fas fa-check text-success me-2"></i>Time in/out tracking</li>
                         </ul>
@@ -92,7 +112,7 @@
                 <div class="alert alert-info mt-3">
                     <i class="fas fa-lightbulb me-2"></i>
                     <strong>Tip:</strong> Ensure good lighting conditions for better face recognition accuracy. 
-                    The system works best with clear, front-facing photos during student registration.
+                    The system works best with clear, front-facing photos during registration.
                 </div>
             </div>
         </div>
@@ -109,7 +129,7 @@
                 <div class="mb-4">
                     <i class="fas fa-robot fa-3x text-primary mb-3"></i>
                     <h5>AI Recognition Ready</h5>
-                    <p class="text-muted">Face recognition system is active and ready to detect students.</p>
+                    <p class="text-muted">Face recognition system is active and ready to detect users.</p>
                 </div>
                 
                 <div class="mb-3">
@@ -117,8 +137,11 @@
                     <h4 class="text-primary" id="current-time">--:--:--</h4>
                 </div>
                 
-                <a href="{{ url_for('live_feed') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-play me-2"></i>Start Recognition
+                <a href="{{ url_for('live_feed') }}" class="btn btn-primary btn-lg mb-2">
+                    <i class="fas fa-play me-2"></i>Start Student Mode
+                </a>
+                <a href="{{ url_for('live_feed') }}?mode=teacher" class="btn btn-primary btn-lg">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Start Teacher Mode
                 </a>
             </div>
         </div>
@@ -135,8 +158,7 @@
         document.getElementById('current-time').textContent = timeString;
     }
     
-    // Update time every second
     setInterval(updateTime, 1000);
-    updateTime(); // Initial call
+    updateTime();
 </script>
 {% endblock %}
