@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Add Teacher - Face Recognition Attendance System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h2 mb-0">
+            <i class="fas fa-user-plus text-primary"></i> Add New Teacher
+        </h1>
+        <p class="text-muted">Register a new teacher with photo for face recognition</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-edit"></i> Teacher Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" id="teacherForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="teacher_id" class="form-label">
+                                <i class="fas fa-id-card"></i> Teacher ID *
+                            </label>
+                            <input type="text" class="form-control" id="teacher_id" name="teacher_id" 
+                                   required pattern="[A-Za-z0-9]+" 
+                                   placeholder="e.g., T001, TEACHER001">
+                            <div class="form-text">Unique identifier for the teacher</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">
+                                <i class="fas fa-user"></i> Full Name *
+                            </label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   required placeholder="e.g., John Doe">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope"></i> Email Address *
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   required placeholder="e.g., john.doe@school.edu">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">
+                                <i class="fas fa-phone"></i> Phone Number
+                            </label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   placeholder="e.g., +1-555-123-4567">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="department" class="form-label">
+                            <i class="fas fa-building"></i> Department
+                        </label>
+                        <select class="form-control" id="department" name="department">
+                            <option value="">Select Department</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Science">Science</option>
+                            <option value="English">English</option>
+                            <option value="History">History</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Physical Education">Physical Education</option>
+                            <option value="Arts">Arts</option>
+                            <option value="Music">Music</option>
+                            <option value="Administration">Administration</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">
+                            <i class="fas fa-camera"></i> Teacher Photo *
+                        </label>
+                        <input type="file" class="form-control" id="image" name="image" 
+                               accept="image/*" required>
+                        <div class="form-text">
+                            Upload a clear, front-facing photo for face recognition. 
+                            Supported formats: JPG, PNG, GIF. Max size: 5MB.
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('teachers') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Teachers
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Add Teacher
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Photo Guidelines</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle"></i> For Best Recognition:</h6>
+                    <ul class="mb-0">
+                        <li>Clear, well-lit photo</li>
+                        <li>Front-facing view</li>
+                        <li>Neutral expression</li>
+                        <li>No sunglasses or hats</li>
+                        <li>High resolution (min 200x200px)</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Important Notes:</h6>
+                    <ul class="mb-0">
+                        <li>Photo will be used for face recognition</li>
+                        <li>Ensure good lighting conditions</li>
+                        <li>Avoid group photos</li>
+                        <li>Update photo if appearance changes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-camera"></i> Photo Preview</h5>
+            </div>
+            <div class="card-body text-center">
+                <div id="imagePreview" class="mb-3">
+                    <div class="bg-light rounded p-4">
+                        <i class="fas fa-user fa-3x text-muted"></i>
+                        <p class="text-muted mt-2">No image selected</p>
+                    </div>
+                </div>
+                <small class="text-muted">Preview will appear here when you select an image</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('image');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file size (5MB limit)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                this.value = '';
+                return;
+            }
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                this.value = '';
+                return;
+            }
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview" 
+                         class="img-fluid rounded" style="max-height: 200px;">
+                `;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagePreview.innerHTML = `
+                <div class="bg-light rounded p-4">
+                    <i class="fas fa-user fa-3x text-muted"></i>
+                    <p class="text-muted mt-2">No image selected</p>
+                </div>
+            `;
+        }
+    });
+    
+    // Form validation
+    const form = document.getElementById('teacherForm');
+    form.addEventListener('submit', function(e) {
+        const teacherId = document.getElementById('teacher_id').value;
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const image = document.getElementById('image').files[0];
+        
+        if (!teacherId || !name || !email || !image) {
+            e.preventDefault();
+            alert('Please fill in all required fields and select an image');
+            return;
+        }
+        
+        // Validate teacher ID format
+        if (!/^[A-Za-z0-9]+$/.test(teacherId)) {
+            e.preventDefault();
+            alert('Teacher ID can only contain letters and numbers');
+            return;
+        }
+        
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            e.preventDefault();
+            alert('Please enter a valid email address');
+            return;
+        }
+    });
+    
+    // Auto-format phone number
+    const phoneInput = document.getElementById('phone');
+    phoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 0) {
+            if (value.length <= 3) {
+                value = value;
+            } else if (value.length <= 6) {
+                value = value.slice(0, 3) + '-' + value.slice(3);
+            } else {
+                value = value.slice(0, 3) + '-' + value.slice(3, 6) + '-' + value.slice(6, 10);
+            }
+        }
+        e.target.value = value;
+    });
+});
+</script>
+{% endblock %}

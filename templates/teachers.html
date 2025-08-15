@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Teachers - Face Recognition Attendance System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="h2 mb-0">
+                <i class="fas fa-chalkboard-teacher text-primary"></i> Teachers Management
+            </h1>
+            <a href="{{ url_for('add_teacher') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Teacher
+            </a>
+        </div>
+        <p class="text-muted">Manage teacher profiles and view their information</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-users"></i> All Teachers</h5>
+    </div>
+    <div class="card-body">
+        {% if teachers %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Photo</th>
+                            <th>Teacher ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Contact</th>
+                            <th>Registration Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for teacher in teachers %}
+                        <tr>
+                            <td>
+                                {% if teacher.image_path %}
+                                    <img src="{{ teacher.image_path }}" alt="{{ teacher.name }}" 
+                                         class="rounded-circle" width="50" height="50" 
+                                         style="object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ teacher.teacher_id }}</strong>
+                            </td>
+                            <td>
+                                <strong>{{ teacher.name }}</strong>
+                            </td>
+                            <td>
+                                {% if teacher.department %}
+                                    <span class="badge bg-info">{{ teacher.department }}</span>
+                                {% else %}
+                                    <span class="text-muted">Not specified</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>
+                                    {% if teacher.email %}
+                                        <div><i class="fas fa-envelope text-primary"></i> {{ teacher.email }}</div>
+                                    {% endif %}
+                                    {% if teacher.phone %}
+                                        <div><i class="fas fa-phone text-success"></i> {{ teacher.phone }}</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ teacher.created_at.strftime('%Y-%m-%d') }}
+                                </small>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('teacher_attendance') }}?teacher_id={{ teacher.teacher_id }}" 
+                                       class="btn btn-sm btn-outline-primary" title="View Attendance">
+                                        <i class="fas fa-clock"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            onclick="confirmDelete('{{ teacher.teacher_id }}', '{{ teacher.name }}')"
+                                            title="Delete Teacher">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Teachers Found</h5>
+                <p class="text-muted">Start by adding your first teacher to the system.</p>
+                <a href="{{ url_for('add_teacher') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add First Teacher
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Stats -->
+{% if teachers %}
+<div class="row mt-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon text-primary">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stats-number text-primary">{{ teachers|length }}</div>
+            <div class="stats-label">Total Teachers</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon text-info">
+                <i class="fas fa-building"></i>
+            </div>
+            <div class="stats-number text-info">
+                {{ teachers|map(attribute='department')|unique|list|length }}
+            </div>
+            <div class="stats-label">Departments</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon text-success">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stats-number text-success">
+                {{ teachers|selectattr('attendances')|list|length }}
+            </div>
+            <div class="stats-label">Active Today</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon text-warning">
+                <i class="fas fa-calendar"></i>
+            </div>
+            <div class="stats-number text-warning">
+                {{ teachers|map(attribute='created_at')|map('strftime', '%Y-%m')|unique|list|length }}
+            </div>
+            <div class="stats-label">Registration Months</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(teacherId, teacherName) {
+    if (confirm(`Are you sure you want to delete teacher "${teacherName}" (ID: ${teacherId})?\n\nThis action cannot be undone and will also delete all attendance records for this teacher.`)) {
+        window.location.href = `/delete_teacher/${teacherId}`;
+    }
+}
+
+// Add some interactive effects
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to table rows
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+    
+    // Animate stats cards
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('.stats-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.6s ease';
+        observer.observe(card);
+    });
+});
+</script>
+{% endblock %}

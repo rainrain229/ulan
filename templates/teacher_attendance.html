@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Attendance - Face Recognition Attendance System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="h2 mb-0">
+                <i class="fas fa-clock text-primary"></i> Teacher Attendance
+            </h1>
+            <div>
+                <a href="{{ url_for('export_teacher_attendance') }}?date={{ selected_date }}" 
+                   class="btn btn-success me-2">
+                    <i class="fas fa-download"></i> Export CSV
+                </a>
+                <a href="{{ url_for('live_feed') }}" class="btn btn-primary">
+                    <i class="fas fa-camera"></i> Start Attendance
+                </a>
+            </div>
+        </div>
+        <p class="text-muted">Monitor and manage teacher attendance records</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-filter"></i> Filter Options</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="date" class="form-label">Select Date</label>
+                <input type="date" class="form-control" id="date" name="date" 
+                       value="{{ selected_date }}" max="{{ today }}">
+            </div>
+            <div class="col-md-4">
+                <label for="teacher_id" class="form-label">Teacher ID</label>
+                <input type="text" class="form-control" id="teacher_id" name="teacher_id" 
+                       value="{{ request.args.get('teacher_id', '') }}" 
+                       placeholder="Filter by teacher ID">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Apply Filters
+                    </button>
+                </div>
+                </div>
+        </form>
+    </div>
+</div>
+
+<!-- Attendance Records -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-list"></i> Attendance Records 
+            <span class="badge bg-primary ms-2">{{ attendance_records|length }}</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if attendance_records %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Teacher</th>
+                            <th>Department</th>
+                            <th>Date</th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attendance, teacher in attendance_records %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if teacher.image_path %}
+                                        <img src="{{ teacher.image_path }}" alt="{{ teacher.name }}" 
+                                             class="rounded-circle me-3" width="40" height="40" 
+                                             style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" 
+                                             style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ teacher.name }}</strong><br>
+                                        <small class="text-muted">{{ teacher.teacher_id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if teacher.department %}
+                                    <span class="badge bg-info">{{ teacher.department }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="fw-bold">{{ attendance.date.strftime('%Y-%m-%d') }}</span><br>
+                                <small class="text-muted">{{ attendance.date.strftime('%A') }}</small>
+                            </td>
+                            <td>
+                                {% if attendance.time_in %}
+                                    <div class="text-success">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                        {{ attendance.time_in.strftime('%H:%M:%S') }}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attendance.time_out %}
+                                    <div class="text-danger">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        {{ attendance.time_out.strftime('%H:%M:%S') }}
+                                    </div>
+                                {% else %}
+                                    <span class="text-warning">Not signed out</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attendance.time_in and attendance.time_out %}
+                                    {% set duration = attendance.time_out - attendance.time_in %}
+                                    {% set hours = duration.total_seconds() // 3600 %}
+                                    {% set minutes = (duration.total_seconds() % 3600) // 60 %}
+                                    <span class="badge bg-secondary">
+                                        {{ hours }}h {{ minutes }}m
+                                    </span>
+                                {% elif attendance.time_in %}
+                                    <span class="text-info">In progress...</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attendance.status == 'Complete' %}
+                                    <span class="badge bg-success">Complete</span>
+                                {% elif attendance.status == 'Present' %}
+                                    <span class="badge bg-warning">Present</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ attendance.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('teachers') }}" class="btn btn-sm btn-outline-primary" 
+                                       title="View Teacher Profile">
+                                        <i class="fas fa-user"></i>
+                                    </a>
+                                    {% if not attendance.time_out %}
+                                        <span class="btn btn-sm btn-outline-success" title="Currently Present">
+                                            <i class="fas fa-clock"></i>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Attendance Records Found</h5>
+                <p class="text-muted">
+                    {% if request.args.get('teacher_id') %}
+                        No attendance records found for the selected teacher on {{ selected_date }}.
+                    {% else %}
+                        No attendance records found for {{ selected_date }}.
+                    {% endif %}
+                </p>
+                <a href="{{ url_for('live_feed') }}" class="btn btn-primary">
+                    <i class="fas fa-camera"></i> Start Taking Attendance
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+{% if attendance_records %}
+<div class="row mt-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon text-primary">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stats-number text-primary">{{ attendance_records|length }}</div>
+            <div class="stats-label">Total Records</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon text-success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stats-number text-success">
+                {{ attendance_records|selectattr('status', 'equalto', 'Complete')|list|length }}
+            </div>
+            <div class="stats-label">Complete</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon text-warning">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stats-number text-warning">
+                {{ attendance_records|selectattr('status', 'equalto', 'Present')|list|length }}
+            </div>
+            <div class="stats-label">Present</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon text-info">
+                <i class="fas fa-building"></i>
+            </div>
+            <div class="stats-number text-info">
+                {{ attendance_records|map(attribute='teacher')|map(attribute='department')|unique|list|length }}
+            </div>
+            <div class="stats-label">Departments</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set today's date as max for date picker
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date').setAttribute('max', today);
+    
+    // Auto-submit form when date changes
+    document.getElementById('date').addEventListener('change', function() {
+        this.form.submit();
+    });
+    
+    // Add some interactive effects
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+    
+    // Animate stats cards
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('.stats-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.6s ease';
+        observer.observe(card);
+    });
+    
+    // Add tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

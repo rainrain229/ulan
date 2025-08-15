@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Face Recognition Attendance System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h2 mb-0">
+            <i class="fas fa-chart-bar text-primary"></i> Attendance Analytics
+        </h1>
+        <p class="text-muted">Comprehensive analysis and insights into attendance patterns</p>
+    </div>
+</div>
+
+<!-- Overview Statistics -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon text-primary">
+                <i class="fas fa-calendar"></i>
+            </div>
+            <div class="stats-number text-primary">30</div>
+            <div class="stats-label">Days Analyzed</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon text-success">
+                <i class="fas fa-trending-up"></i>
+            </div>
+            <div class="stats-number text-success">
+                {{ daily_stats|length if daily_stats else 0 }}
+            </div>
+            <div class="stats-label">Data Points</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon text-info">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stats-number text-info">
+                {{ class_stats|length if class_stats else 0 }}
+            </div>
+            <div class="stats-label">Classes</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-icon text-warning">
+                <i class="fas fa-building"></i>
+            </div>
+            <div class="stats-number text-warning">
+                {{ dept_stats|length if dept_stats else 0 }}
+            </div>
+            <div class="stats-label">Departments</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-lg-8 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Daily Attendance Trends (Last 30 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dailyTrendsChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Today's Attendance Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="todayDistributionChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Class and Department Analytics -->
+<div class="row mb-4">
+    <div class="col-lg-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-graduation-cap"></i> Class-wise Attendance</h5>
+            </div>
+            <div class="card-body">
+                {% if class_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Class</th>
+                                    <th>Total</th>
+                                    <th>Present</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in class_stats %}
+                                <tr>
+                                    <td><strong>{{ stat.class_name }}</strong></td>
+                                    <td>{{ stat.total }}</td>
+                                    <td>{{ stat.present }}</td>
+                                    <td>
+                                        {% set percentage = (stat.present / stat.total * 100) if stat.total > 0 else 0 %}
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" 
+                                                 style="width: {{ percentage }}%">
+                                                {{ "%.1f"|format(percentage) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                        <p>No class data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-building"></i> Department-wise Teacher Attendance</h5>
+            </div>
+            <div class="card-body">
+                {% if dept_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Department</th>
+                                    <th>Total</th>
+                                    <th>Present</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in dept_stats %}
+                                <tr>
+                                    <td><strong>{{ stat.department or 'Unassigned' }}</strong></td>
+                                    <td>{{ stat.total }}</td>
+                                    <td>{{ stat.present }}</td>
+                                    <td>
+                                        {% set percentage = (stat.present / stat.total * 100) if stat.total > 0 else 0 %}
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-info" role="progressbar" 
+                                                 style="width: {{ percentage }}%">
+                                                {{ "%.1f"|format(percentage) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-building fa-3x mb-3"></i>
+                        <p>No department data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Analytics -->
+<div class="row">
+    <div class="col-lg-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-clock"></i> Peak Attendance Hours</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="peakHoursChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-calendar-week"></i> Weekly Patterns</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="weeklyPatternsChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Options -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-download"></i> Export Analytics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('export_attendance') }}" class="btn btn-success w-100">
+                            <i class="fas fa-file-csv"></i> Student Attendance CSV
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('export_teacher_attendance') }}" class="btn btn-info w-100">
+                            <i class="fas fa-file-csv"></i> Teacher Attendance CSV
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-warning w-100" onclick="exportCharts()">
+                            <i class="fas fa-image"></i> Export Charts
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-primary w-100" onclick="generateReport()">
+                            <i class="fas fa-file-pdf"></i> Generate Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Daily Trends Chart
+    const dailyCtx = document.getElementById('dailyTrendsChart').getContext('2d');
+    const dailyChart = new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+            labels: {{ daily_stats|map(attribute='date')|list|tojson }},
+            datasets: [{
+                label: 'Students',
+                data: {{ daily_stats|map(attribute='students')|list|tojson }},
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Teachers',
+                data: {{ daily_stats|map(attribute='teachers')|list|tojson }},
+                borderColor: '#17a2b8',
+                backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Daily Attendance Trends'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of People'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Today's Distribution Chart
+    const todayCtx = document.getElementById('todayDistributionChart').getContext('2d');
+    const todayChart = new Chart(todayCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Students', 'Teachers'],
+            datasets: [{
+                data: [
+                    {{ daily_stats[-1].students if daily_stats else 0 }},
+                    {{ daily_stats[-1].teachers if daily_stats else 0 }}
+                ],
+                backgroundColor: ['#667eea', '#17a2b8'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                title: {
+                    display: true,
+                    text: 'Today\'s Attendance'
+                }
+            }
+        }
+    });
+    
+    // Peak Hours Chart (Sample data)
+    const peakCtx = document.getElementById('peakHoursChart').getContext('2d');
+    const peakChart = new Chart(peakCtx, {
+        type: 'bar',
+        data: {
+            labels: ['8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'],
+            datasets: [{
+                label: 'Attendance Count',
+                data: [15, 45, 78, 92, 85, 67, 89, 76, 34],
+                backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                borderColor: '#667eea',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Peak Attendance Hours'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of People'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Weekly Patterns Chart
+    const weeklyCtx = document.getElementById('weeklyPatternsChart').getContext('2d');
+    const weeklyChart = new Chart(weeklyCtx, {
+        type: 'radar',
+        data: {
+            labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            datasets: [{
+                label: 'Students',
+                data: [85, 88, 92, 87, 90, 45, 20],
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                pointBackgroundColor: '#667eea'
+            }, {
+                label: 'Teachers',
+                data: [92, 95, 98, 94, 96, 60, 30],
+                borderColor: '#17a2b8',
+                backgroundColor: 'rgba(23, 162, 184, 0.2)',
+                pointBackgroundColor: '#17a2b8'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Weekly Attendance Patterns (%)'
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        stepSize: 20
+                    }
+                }
+            }
+        }
+    });
+    
+    // Animate stats cards
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('.stats-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.6s ease';
+        observer.observe(card);
+    });
+});
+
+function exportCharts() {
+    // Export charts as images
+    const charts = ['dailyTrendsChart', 'todayDistributionChart', 'peakHoursChart', 'weeklyPatternsChart'];
+    charts.forEach(chartId => {
+        const canvas = document.getElementById(chartId);
+        const link = document.createElement('a');
+        link.download = `${chartId}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+}
+
+function generateReport() {
+    alert('Report generation feature coming soon! This will create a comprehensive PDF report with all analytics.');
+}
+</script>
+{% endblock %}
